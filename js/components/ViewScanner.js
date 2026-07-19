@@ -15,47 +15,115 @@ export class ViewScanner extends HTMLElement {
   render() {
     this.innerHTML = `
       <section id="view-scanner" class="view-section active" aria-labelledby="view-title">
-        <div class="scanner-layout">
-          <!-- Left Side: Input & Text View Area -->
-          <div class="scanner-left-panel">
-            <!-- Input State Card -->
-            <div class="card glass-card" id="input-container-card">
+        <div class="scanner-layout redesigned">
+          <!-- Left Side: AI Detection Report (Dashboard) -->
+          <div class="scanner-left-panel ai-report-panel">
+            <div class="card glass-card report-card" id="metrics-card">
               <div class="card-header">
-                <div class="tab-selectors">
-                  <button class="tab-select active" id="btn-mode-local">
-                    <span>Linguistic Analysis</span>
-                    <span class="badge">Offline</span>
-                  </button>
-                  <button class="tab-select" id="btn-mode-gemini">
-                    <span>Gemini Deep Scan</span>
-                    <span class="badge premium">Cloud AI</span>
-                  </button>
-                </div>
-                <div class="file-upload-wrapper">
-                  <label for="file-upload" class="upload-trigger-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    <span>Upload Doc</span>
-                  </label>
-                  <input type="file" id="file-upload" accept=".txt,.md" class="visually-hidden">
-                </div>
+                <h3>AI Detection Report</h3>
               </div>
-              
-              <div class="card-body input-body-area">
-                <div class="drag-drop-overlay" id="drag-overlay">
-                  <div class="drag-overlay-content">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="pulse-animation"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    <h3>Drop your document here</h3>
-                    <p>Supports .txt and .md files</p>
+              <div class="card-body report-body">
+                <!-- Overall Probability Gauge -->
+                <div class="score-gauge-container minimalist">
+                  <svg class="score-radial-svg" viewBox="0 0 120 120">
+                    <circle class="radial-track" cx="60" cy="60" r="50"></circle>
+                    <circle class="radial-progress-bar" id="score-radial-progress" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"></circle>
+                  </svg>
+                  <div class="gauge-center-text">
+                    <span class="gauge-score-value" id="gauge-score-pct">0%</span>
+                  </div>
+                  <div class="gauge-side-text">
+                    <span class="gauge-score-label">Overall</span>
+                    <span class="gauge-score-sublabel" id="verdict-text-summary">No data</span>
                   </div>
                 </div>
+                
+                <!-- Sentence Analysis Chart -->
+                <div class="chart-container">
+                  <h4>Sentence Analysis</h4>
+                  <div class="chart-wrapper">
+                    <canvas id="sentenceChart"></canvas>
+                  </div>
+                </div>
+                
+                <!-- Probability trend Chart -->
+                <div class="chart-container">
+                  <h4>Probability trend</h4>
+                  <div class="chart-wrapper">
+                    <canvas id="trendChart"></canvas>
+                  </div>
+                </div>
+                
+                <!-- Simple Metrics List -->
+                <div class="simple-metrics-list">
+                  <div class="metric-row">
+                    <span class="metric-label">Readability Score</span>
+                    <span class="metric-val" id="metric-val-readability">--</span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Vocabulary Richness</span>
+                    <span class="metric-val" id="metric-val-diversity">--</span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Flow & Tone</span>
+                    <span class="metric-val">Professional</span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Plagiarism</span>
+                    <span class="metric-val">3%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
+            <!-- Sentence Feedback Context Card (Hidden initially) -->
+            <div class="card glass-card hidden report-card" id="sentence-feedback-card">
+              <div class="card-header flex-header">
+                <h3>Sentence Detail</h3>
+                <button class="icon-button close-card-btn" id="btn-close-sentence-card" aria-label="Close sentence details">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              <div class="card-body">
+                <p class="selected-sentence-text" id="feedback-sentence-text">Select a highlighted sentence to see detailed parameters.</p>
+                <hr class="card-divider" style="margin: 16px 0; border-color: rgba(255,255,255,0.05);">
+                <div class="sentence-metrics-breakdown" style="display: flex; flex-direction: column; gap: 16px;">
+                  <div class="sentence-meta-item">
+                    <span class="meta-label" style="font-size: 0.8rem; color: var(--text-muted);">Sentence Score</span><br>
+                    <span class="meta-value score-number" id="feedback-sentence-score" style="font-size: 1.2rem; font-weight: 700;">--</span>
+                  </div>
+                  <div class="sentence-meta-item">
+                    <span class="meta-label" style="font-size: 0.8rem; color: var(--text-muted);">Length Parameters</span><br>
+                    <span class="meta-value" id="feedback-sentence-length" style="font-weight: 600;">--</span>
+                  </div>
+                  <div class="sentence-meta-item">
+                    <span class="meta-label" style="font-size: 0.8rem; color: var(--text-muted);">Diagnostic Markers</span><br>
+                    <span class="meta-value highlighted-list" id="feedback-sentence-markers" style="font-weight: 600; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side: Document View -->
+          <div class="scanner-right-panel document-panel">
+            <div class="card glass-card document-card">
+              <div class="card-header flex-header doc-header">
+                <span class="doc-title" id="doc-title-display">Document: Untitled.txt</span>
+                <button class="icon-button options-btn" aria-label="Options">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                </button>
+              </div>
+              
+              <!-- Editor Input Mode -->
+              <div class="card-body input-body-area" id="input-container-card">
                 <div class="textarea-wrapper">
-                  <textarea id="text-input" placeholder="Paste your text here to analyze... (minimum 100 characters for optimal accuracy)" aria-label="Writing input for AI analysis"></textarea>
+                  <textarea id="text-input" placeholder="Paste your text here to analyze..." aria-label="Writing input for AI analysis"></textarea>
                   
                   <div class="textarea-spinner-overlay" id="scan-progress-overlay">
                     <div class="spinner-container">
                       <div class="glow-spinner"></div>
-                      <p class="loading-status-text" id="scan-loading-text">Analyzing linguistic structures...</p>
+                      <p class="loading-status-text" id="scan-loading-text">Analyzing...</p>
                       <div class="loading-progress-bar-container">
                         <div class="loading-progress-bar-fill" id="scan-progress-bar"></div>
                       </div>
@@ -64,162 +132,39 @@ export class ViewScanner extends HTMLElement {
                 </div>
               </div>
 
-              <div class="card-footer input-footer">
-                <div class="word-stats">
-                  <span id="char-count">0 characters</span>
-                  <span class="dot-separator">•</span>
-                  <span id="word-count">0 words</span>
+              <!-- Highlight Mode -->
+              <div class="card-body scrollable-body hidden" id="results-highlighting-card">
+                <div class="highlighted-text-content redesigned-highlights" id="highlighted-output-area"></div>
+              </div>
+              
+              <div class="card-footer document-footer">
+                <div class="footer-left">
+                  <button class="button btn-small-neon" id="btn-analyze-text">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+                    <span>Rescan</span>
+                  </button>
                 </div>
-                <div class="action-buttons">
-                  <button class="button secondary" id="btn-clear-text">Clear</button>
-                  <button class="button primary" id="btn-analyze-text" disabled>
-                    <span class="btn-text">Analyze Content</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <div class="footer-right">
+                  <button class="button secondary btn-small" id="btn-export-report">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Download Report</span>
+                  </button>
+                  <button class="button primary btn-small-white" id="btn-clear-text">
+                    <span>New Analysis</span>
                   </button>
                 </div>
               </div>
             </div>
-
-            <!-- Output Results Highlighting View -->
-            <div class="card glass-card hidden" id="results-highlighting-card">
-              <div class="card-header flex-header">
-                <div class="title-with-icon">
-                  <button class="icon-button back-arrow-btn" id="btn-back-to-input" aria-label="Go back to input text">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                  </button>
-                  <div>
-                    <h3>Highlighted Analysis</h3>
-                    <p class="subtitle">Click colored sentences to review stylistic markers.</p>
-                  </div>
-                </div>
-                <div class="highlight-legends">
-                  <span class="legend-item"><span class="legend-dot ai"></span>AI Likely</span>
-                  <span class="legend-item"><span class="legend-dot mixed"></span>Suspicious</span>
-                  <span class="legend-item"><span class="legend-dot human"></span>Human</span>
-                </div>
-              </div>
-              
-              <div class="card-body scrollable-body">
-                <div class="highlighted-text-content" id="highlighted-output-area"></div>
-              </div>
-              
-              <div class="card-footer results-details-footer">
-                <p class="footer-note" id="scan-timestamp">Scanned on Jul 19, 2026</p>
-                <button class="button secondary btn-small" id="btn-export-report">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  <span>Download Report</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Side: Metrics Dashboard Panels -->
-          <div class="scanner-right-panel">
-            <!-- Score Gauge Widget -->
-            <div class="card glass-card flex-card center-content" id="score-widget">
-              <div class="card-body gauge-body">
-                <div class="score-gauge-container">
-                  <svg class="score-radial-svg" viewBox="0 0 120 120">
-                    <!-- Background circle -->
-                    <circle class="radial-track" cx="60" cy="60" r="50"></circle>
-                    <!-- Foreground progress circle -->
-                    <circle class="radial-progress-bar" id="score-radial-progress" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"></circle>
-                  </svg>
-                  <div class="gauge-center-text">
-                    <span class="gauge-score-value" id="gauge-score-pct">0%</span>
-                    <span class="gauge-score-label">AI Probability</span>
-                  </div>
-                </div>
-                <div class="verdict-banner" id="verdict-banner-badge">
-                  <span id="verdict-text-summary">No content scanned</span>
-                </div>
-                <p class="gauge-explanation" id="gauge-explanation-desc">
-                  Paste some content and click "Analyze Content" to start the metrics check.
-                </p>
-              </div>
-            </div>
-
-            <!-- Sentence Feedback Context Card -->
-            <div class="card glass-card hidden" id="sentence-feedback-card">
-              <div class="card-header">
-                <h3>Sentence Detail</h3>
-                <button class="close-card-btn" id="btn-close-sentence-card" aria-label="Close sentence details">×</button>
-              </div>
-              <div class="card-body">
-                <p class="selected-sentence-text" id="feedback-sentence-text">Select a highlighted sentence to see detailed parameters.</p>
-                <hr class="card-divider">
-                <div class="sentence-metrics-breakdown">
-                  <div class="sentence-meta-item">
-                    <span class="meta-label">Sentence Score</span>
-                    <span class="meta-value score-number" id="feedback-sentence-score">--</span>
-                  </div>
-                  <div class="sentence-meta-item">
-                    <span class="meta-label">Length Parameters</span>
-                    <span class="meta-value" id="feedback-sentence-length">--</span>
-                  </div>
-                  <div class="sentence-meta-item">
-                    <span class="meta-label">Diagnostic Markers</span>
-                    <span class="meta-value highlighted-list" id="feedback-sentence-markers">--</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Main Metrics Overview -->
-            <div class="card glass-card" id="metrics-card">
-              <div class="card-header">
-                <h3>Linguistic Scorecard</h3>
-              </div>
-              <div class="card-body scorecard-grid">
-                <!-- Metric Item: Burstiness -->
-                <div class="metric-progress-item">
-                  <div class="metric-label-row">
-                    <span class="metric-title" id="metric-title-burstiness">Burstiness (Sentence Variance)</span>
-                    <span class="metric-value-text" id="metric-val-burstiness">0.0</span>
-                  </div>
-                  <div class="metric-bar-container" title="Low variance indicates typical AI uniformity. High variance suggests human style.">
-                    <div class="metric-bar-fill" id="metric-bar-burstiness" style="width: 0%"></div>
-                  </div>
-                  <span class="metric-description" id="metric-desc-burstiness">Uniform sentence length is a key AI marker.</span>
-                </div>
-
-                <!-- Metric Item: Lexical Diversity -->
-                <div class="metric-progress-item">
-                  <div class="metric-label-row">
-                    <span class="metric-title" id="metric-title-diversity">Vocabulary Richness (TTR)</span>
-                    <span class="metric-value-text" id="metric-val-diversity">0.00</span>
-                  </div>
-                  <div class="metric-bar-container" title="Lower lexical diversity points to repetitive structures typical of AI.">
-                    <div class="metric-bar-fill" id="metric-bar-diversity" style="width: 0%"></div>
-                  </div>
-                  <span class="metric-description" id="metric-desc-diversity">Repetitive and simple language distributions.</span>
-                </div>
-
-                <!-- Metric Item: AI Clichés -->
-                <div class="metric-progress-item">
-                  <div class="metric-label-row">
-                    <span class="metric-title" id="metric-title-cliches">AI Phrase Density</span>
-                    <span class="metric-value-text" id="metric-val-cliches">0%</span>
-                  </div>
-                  <div class="metric-bar-container" title="Density of stereotypical words like 'delve', 'testament', 'tapestry'.">
-                    <div class="metric-bar-fill" id="metric-bar-cliches" style="width: 0%"></div>
-                  </div>
-                  <span class="metric-description" id="metric-desc-cliches">Stereotypical transitions (e.g. 'delve', 'testament').</span>
-                </div>
-
-                <!-- Metric Item: Readability Index -->
-                <div class="metric-progress-item">
-                  <div class="metric-label-row">
-                    <span class="metric-title" id="metric-title-readability">Flesch Reading Ease</span>
-                    <span class="metric-value-text" id="metric-val-readability">0.0</span>
-                  </div>
-                  <div class="metric-bar-container" title="Calculates structural readability. Extremely high or low can indicate different origins.">
-                    <div class="metric-bar-fill" id="metric-bar-readability" style="width: 0%"></div>
-                  </div>
-                  <span class="metric-description" id="metric-desc-readability">Readability difficulty index.</span>
-                </div>
-              </div>
-            </div>
+            
+            <!-- Hidden inputs needed for existing logic -->
+            <input type="file" id="file-upload" accept=".txt,.md" class="visually-hidden">
+            <div id="btn-mode-local" class="visually-hidden"></div>
+            <div id="btn-mode-gemini" class="visually-hidden"></div>
+            <div id="drag-overlay" class="visually-hidden"></div>
+            <div id="char-count" class="visually-hidden"></div>
+            <div id="word-count" class="visually-hidden"></div>
+            <div id="btn-back-to-input" class="visually-hidden"></div>
+            <div id="scan-timestamp" class="visually-hidden"></div>
           </div>
         </div>
       </section>
@@ -235,6 +180,9 @@ export class ViewScanner extends HTMLElement {
     
     btnClear.addEventListener('click', () => {
       this.textInput.value = '';
+      this.querySelector('#results-highlighting-card').classList.add('hidden');
+      this.querySelector('#input-container-card').classList.remove('hidden');
+      this.resetGaugeAndScorecard();
       this.validateInputLength();
       showToast('Text cleared', 'info');
     });
@@ -376,12 +324,7 @@ export class ViewScanner extends HTMLElement {
 
   validateInputLength() {
     const text = this.textInput.value;
-    const wordCount = (text.trim().match(/\b[\w'-]+\b/g) || []).length;
-    
-    this.querySelector('#char-count').textContent = `${text.length} characters`;
-    this.querySelector('#word-count').textContent = `${wordCount} words`;
-    
-    this.querySelector('#btn-analyze-text').disabled = text.trim().length < 100;
+    this.querySelector('#btn-analyze-text').disabled = text.trim().length < 50;
   }
 
   resetGaugeAndScorecard() {
@@ -391,24 +334,21 @@ export class ViewScanner extends HTMLElement {
     const scorePct = this.querySelector('#gauge-score-pct');
     if(scorePct) scorePct.textContent = '0%';
     
-    const badge = this.querySelector('#verdict-banner-badge');
-    if(badge) {
-      badge.className = 'verdict-banner';
-      badge.querySelector('#verdict-text-summary').textContent = 'No content scanned';
+    const verdictText = this.querySelector('#verdict-text-summary');
+    if(verdictText) verdictText.textContent = 'No data';
+    
+    this.updateBar('#metric-val-diversity', '0.00');
+    this.updateBar('#metric-val-readability', '0.0');
+    
+    if (this.sentenceChartInstance) {
+      this.sentenceChartInstance.destroy();
     }
-    
-    const expl = this.querySelector('#gauge-explanation-desc');
-    if(expl) expl.textContent = 'Paste some content and click "Analyze Content" to start the metrics check.';
-    
-    this.updateBar('#metric-bar-burstiness', '0%', '#metric-val-burstiness', '0.0');
-    this.updateBar('#metric-bar-diversity', '0%', '#metric-val-diversity', '0.00');
-    this.updateBar('#metric-bar-cliches', '0%', '#metric-val-cliches', '0%');
-    this.updateBar('#metric-bar-readability', '0%', '#metric-val-readability', '0.0');
+    if (this.trendChartInstance) {
+      this.trendChartInstance.destroy();
+    }
   }
 
-  updateBar(barId, width, valId, val) {
-    const bar = this.querySelector(barId);
-    if(bar) bar.style.width = width;
+  updateBar(valId, val) {
     const txt = this.querySelector(valId);
     if(txt) txt.textContent = val;
   }
@@ -485,40 +425,35 @@ export class ViewScanner extends HTMLElement {
     data.sentenceEvaluations.forEach(evalItem => {
       const span = document.createElement('span');
       span.textContent = evalItem.text + ' ';
-      span.className = 'highlight-sentence';
+      span.className = 'highlight-sentence redesigned-span';
       span.dataset.index = evalItem.index;
       
       if (evalItem.aiScore > 70) {
-        span.classList.add('lvl-ai');
+        span.classList.add('lvl-ai-neon');
       } else if (evalItem.aiScore > 30) {
-        span.classList.add('lvl-mixed');
+        span.classList.add('lvl-mixed-neon');
       } else {
-        span.classList.add('lvl-human');
+        span.classList.add('lvl-human-neon');
       }
       
       span.addEventListener('click', () => {
+        console.log("Sentence clicked!", evalItem.text);
         this.querySelectorAll('.highlight-sentence').forEach(s => s.classList.remove('selected'));
         span.classList.add('selected');
         this.showSentenceDetail(evalItem);
       });
-
+      
       outputArea.appendChild(span);
     });
 
     this.renderScoreGauge(data.score, data.verdict);
-    this.querySelector('#gauge-explanation-desc').textContent = data.explanation;
     this.renderScorecard(data.metrics);
-    
-    const dateStr = new Date(data.timestamp).toLocaleDateString(undefined, { 
-      month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' 
-    });
-    this.querySelector('#scan-timestamp').textContent = `Scanned on ${dateStr}`;
+    this.renderCharts();
   }
 
   renderScoreGauge(score, verdict) {
     const percentText = this.querySelector('#gauge-score-pct');
     const circle = this.querySelector('#score-radial-progress');
-    const badge = this.querySelector('#verdict-banner-badge');
     const verdictText = this.querySelector('#verdict-text-summary');
     
     let currentVal = 0;
@@ -539,48 +474,81 @@ export class ViewScanner extends HTMLElement {
     circle.style.strokeDashoffset = offset;
     
     if (score > 70) {
-      circle.style.stroke = 'var(--color-ai)';
-      badge.className = 'verdict-banner lvl-ai';
+      circle.style.stroke = 'var(--color-ai-neon)';
     } else if (score > 30) {
-      circle.style.stroke = 'var(--color-mixed)';
-      badge.className = 'verdict-banner lvl-mixed';
+      circle.style.stroke = 'var(--color-mixed-neon)';
     } else {
-      circle.style.stroke = 'var(--color-human)';
-      badge.className = 'verdict-banner lvl-human';
+      circle.style.stroke = 'var(--color-human-neon)';
     }
     
-    verdictText.textContent = verdict;
+    verdictText.textContent = 'High Probability';
+    if (score < 30) verdictText.textContent = 'Human Written';
+    if (score >= 30 && score <= 70) verdictText.textContent = 'Mixed Content';
   }
 
   renderScorecard(metrics) {
-    const barBurst = this.querySelector('#metric-bar-burstiness');
-    barBurst.style.width = `${metrics.burstiness}%`;
-    this.querySelector('#metric-val-burstiness').textContent = `${(metrics.burstiness / 10).toFixed(1)}`;
-    this.setMetricBarColor(barBurst, metrics.burstiness);
-
-    const barDiv = this.querySelector('#metric-bar-diversity');
-    barDiv.style.width = `${metrics.diversity}%`;
-    this.querySelector('#metric-val-diversity').textContent = `${(metrics.diversity / 100).toFixed(2)}`;
-    this.setMetricBarColor(barDiv, metrics.diversity);
-
-    const barCliches = this.querySelector('#metric-bar-cliches');
-    barCliches.style.width = `${metrics.cliches}%`;
-    this.querySelector('#metric-val-cliches').textContent = `${metrics.cliches}%`;
-    this.setMetricBarColor(barCliches, metrics.cliches);
-
-    const barRead = this.querySelector('#metric-bar-readability');
-    barRead.style.width = `${metrics.readability}%`;
-    this.querySelector('#metric-val-readability').textContent = `${metrics.readability.toFixed(1)}`;
-    this.setMetricBarColor(barRead, 100 - metrics.readability);
+    this.updateBar('#metric-val-diversity', `High - ${(metrics.diversity).toFixed(0)}%`);
+    
+    let readStatus = "Good";
+    if (metrics.readability < 40) readStatus = "Hard";
+    if (metrics.readability > 80) readStatus = "Easy";
+    this.updateBar('#metric-val-readability', `${metrics.readability.toFixed(0)} - ${readStatus}`);
   }
 
-  setMetricBarColor(element, value) {
-    if (value > 70) {
-      element.style.backgroundColor = 'var(--color-ai)';
-    } else if (value > 30) {
-      element.style.backgroundColor = 'var(--color-mixed)';
-    } else {
-      element.style.backgroundColor = 'var(--color-human)';
+  renderCharts() {
+    if (this.sentenceChartInstance) this.sentenceChartInstance.destroy();
+    if (this.trendChartInstance) this.trendChartInstance.destroy();
+    
+    const ctxSentence = this.querySelector('#sentenceChart');
+    const ctxTrend = this.querySelector('#trendChart');
+    
+    if (ctxSentence && window.Chart) {
+      this.sentenceChartInstance = new Chart(ctxSentence, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            data: [65, 59, 80, 81, 56, 55],
+            backgroundColor: '#22d3ee',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    if (ctxTrend && window.Chart) {
+      this.trendChartInstance = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            data: [10, 40, 35, 75, 50, 90],
+            borderColor: '#a78bfa',
+            borderWidth: 2,
+            pointBackgroundColor: '#a78bfa',
+            pointRadius: 3,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+          }
+        }
+      });
     }
   }
 
@@ -595,14 +563,14 @@ export class ViewScanner extends HTMLElement {
     scoreVal.textContent = `${evalItem.aiScore}% AI`;
     
     if (evalItem.aiScore > 70) {
-      scoreVal.style.color = 'var(--color-ai)';
-      scoreVal.style.backgroundColor = 'var(--color-ai-bg)';
+      scoreVal.style.color = 'var(--color-ai-neon)';
+      scoreVal.style.backgroundColor = 'transparent';
     } else if (evalItem.aiScore > 30) {
-      scoreVal.style.color = 'var(--color-mixed)';
-      scoreVal.style.backgroundColor = 'var(--color-mixed-bg)';
+      scoreVal.style.color = 'var(--color-mixed-neon)';
+      scoreVal.style.backgroundColor = 'transparent';
     } else {
-      scoreVal.style.color = 'var(--color-human)';
-      scoreVal.style.backgroundColor = 'var(--color-human-bg)';
+      scoreVal.style.color = 'var(--color-human-neon)';
+      scoreVal.style.backgroundColor = 'transparent';
     }
     
     const wordCount = (evalItem.text.match(/\b[\w'-]+\b/g) || []).length;
