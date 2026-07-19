@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>promptlens-ai</title>
+  <meta name="description" content="Analyze writing style, sentence structure, lexical diversity, and burstiness to detect AI-generated text. Securely scan with local heuristics or deep scan via Google Gemini.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Toast Notification Container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- App Shell Layout -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation Web Component -->
+    <app-sidebar></app-sidebar>
+
+    <!-- Main Content Panel -->
+    <main class="main-panel">
+      
+      <!-- Header Web Component -->
+      <app-header></app-header>
+
+      <!-- View Containers -->
+      <div class="views-wrapper">
+        <view-scanner></view-scanner>
+        <view-history></view-history>
+        <view-analytics></view-analytics>
+        <view-settings></view-settings>
+      </div>
+    </main>
+  </div>
+
+  <!-- Detail Dialog Report Modal Web Component -->
+  <report-modal></report-modal>
+
+  <!-- JS Logic Script (ES Module) -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

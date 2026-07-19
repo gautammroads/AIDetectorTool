@@ -1,0 +1,19 @@
+{
+  "name": "promptlens-ai",
+  "version": "1.0.0",
+  "description": "Advanced AI Content Detector and Writing Analytics Tool",
+  "scripts": {
+    "start": "npx -y http-server -p 3000 -c-1"
+  },
+  "keywords": [
+    "ai-detector",
+    "perplexity",
+    "burstiness",
+    "gemini-api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^25.3.0"
+  }
+}
