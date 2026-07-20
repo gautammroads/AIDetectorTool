@@ -40,6 +40,7 @@ To launch the web application locally:
 
 3.  Open your browser and navigate to:
     [http://localhost:3000](http://localhost:3000)
+4.  Public url : https://promptlens-ai-detector.web.app/
 
 ## 🔑 Configure Cloud AI Scan (Optional)
 
